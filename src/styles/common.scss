@@ -1,0 +1,19 @@
+:root {
+  box-sizing: border-box;
+}
+
+*,
+::before,
+::after {
+  box-sizing: inherit;
+}
+
+html,
+body,
+#app {
+  margin: 0;
+  height: 100%;
+  font-family: 'Microsoft YaHei';
+  color: #333;
+  background-color: #fff;
+}
