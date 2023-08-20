@@ -3,6 +3,8 @@ import { onMounted } from 'vue'
 import { getLocation } from '@/utils/getLocation'
 import { getHousingInfoApi } from '@/api/area/index'
 import type { HousingInfoItem } from '@/api/area/type'
+import HouseItems from './components/HouseItems.vue'
+import { ref } from 'vue'
 defineOptions({
   // eslint-disable-next-line
   name: 'Map'
@@ -36,7 +38,15 @@ async function initMap() {
 
   // 创建房源信息覆盖物
   renderOverlays(areaId)
+
+  // 地图移动时隐藏房屋列表
+  map.addEventListener('dragstart', () => {
+    if (!isShow.value) return
+    isShow.value = false
+  })
 }
+onMounted(() => initMap())
+
 /**@description 渲染覆盖物的函数 */
 async function renderOverlays(areaId: string) {
   const { body } = await getHousingInfoApi(areaId)
@@ -57,7 +67,6 @@ function getTypeAndZoom() {
   const zoom = map.getZoom()
   let type = 'circle'
   let nextZoom = 13
-
   if (zoom >= 10 && zoom < 12) {
     type = 'circle'
     nextZoom = 13
@@ -67,7 +76,6 @@ function getTypeAndZoom() {
   } else if (zoom >= 14 && zoom < 16) {
     type = 'rect'
   }
-
   return { type, nextZoom }
 }
 
@@ -76,7 +84,7 @@ function createOverlays(area: HousingInfoItem, type: string, zoom: number) {
   if (type === 'circle') {
     createCircle(area, zoom)
   } else {
-    createRect(area, zoom)
+    createRect(area)
   }
 }
 
@@ -112,31 +120,86 @@ function createCircle(area: HousingInfoItem, zoom: number) {
     cursor: 'pointer'
   })
 
+  map.addOverlay(label)
+
   label.addEventListener('click', () => {
     map.centerAndZoom(areaPoint, zoom) // 放大地图
     map.clearOverlays() // 清除所有覆盖物
-    renderOverlays(area.value) // 渲染下一级覆盖物
+    renderOverlays(area.value)
+    // 确保地图放大后再渲染
+    setTimeout(() => {
+      renderOverlays(area.value) // 渲染下一级覆盖物
+    }, 0)
   })
-  map.addOverlay(label)
 }
 
+const isShow = ref(false) // 控制列表平移类
+const houseItemRef = ref<InstanceType<typeof HouseItems> | null>(null)
+
 /**@description 创建小区覆盖物的函数 */
-function createRect(area: HousingInfoItem, zoom: number) {
-  console.log(area, zoom)
+function createRect(area: HousingInfoItem) {
+  const areaPoint = new BMapGL.Point(area.coord.longitude, area.coord.latitude)
+
+  const opts = {
+    position: areaPoint, // 指定文本标注所在的地理位置
+    offset: new BMapGL.Size(-50, -25) // 设置文本偏移量
+  }
+
+  const label = new BMapGL.Label('', opts) // 创建文本标注对象
+
+  label.setContent(/*html*/ `
+        <div class="rect">${area.label}&nbsp;${area.count}套</div>
+      `)
+
+  label.setStyle({
+    width: '100px',
+    height: '20px',
+    backgroundColor: 'rgba(12, 181, 106, 0.9)',
+    color: 'white',
+    display: 'flex',
+    flexDirection: 'column',
+    justifyContent: 'center',
+    alignItems: 'center',
+    borderRadius: '2px',
+    fontSize: '12px',
+    border: '1px solid white',
+    whiteSpace: 'nowrap',
+    cursor: 'pointer'
+  })
+
+  map.addOverlay(label)
+
+  label.addEventListener('click', (e: any) => {
+    houseItemRef.value?.getHouseList(area.value)
+    isShow.value = true
+    // 将点击的覆盖物移动到中心点
+    const target = e.currentTarget.domElement
+    const x = window.innerWidth / 2 - target.offsetLeft - 50
+    const y = (window.innerHeight - 330) / 2 - target.offsetTop - 10
+    map.panBy(x, y)
+  })
 }
-onMounted(() => initMap())
 </script>
 
 <template>
   <div class="map">
     <NavBar title="地图找房" />
-
+    <!-- 地图 -->
     <div id="container"></div>
+    <!-- 房屋列表 -->
+    <div :class="['house-list', { show: isShow }]">
+      <div class="title">
+        <h3>房屋列表</h3>
+        <span>更多房源</span>
+      </div>
+      <HouseItems ref="houseItemRef" />
+    </div>
   </div>
 </template>
 
 <style lang="scss" scoped>
 .map {
+  position: relative;
   height: 100%;
 
   #container {
@@ -144,7 +207,50 @@ onMounted(() => initMap())
   }
 }
 
+.house-list {
+  position: fixed;
+  z-index: 10;
+  left: 0;
+  bottom: 0;
+  width: 100%;
+  height: 330px;
+  background-color: #fff;
+  border-radius: 5px 5px 0 0;
+  transition: all 0.5s ease;
+  translate: 0 330px;
+
+  &.show {
+    translate: 0;
+  }
+
+  .title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0 10px;
+    background-color: #b5b7bb;
+
+    h3 {
+      margin: 10px 0;
+    }
+  }
+}
+
 :deep(.house-count) {
   margin: 0;
+}
+
+:deep(.rect) {
+  position: relative;
+  &::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -10px;
+    width: 0;
+    height: 0;
+    border: 5px solid transparent;
+    border-top: 5px solid rgba(12, 181, 106, 0.9);
+  }
 }
 </style>

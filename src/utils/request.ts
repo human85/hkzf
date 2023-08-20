@@ -2,7 +2,7 @@ import axios from 'axios'
 
 const request = axios.create({
   baseURL: import.meta.env.VITE_SERVE,
-  timeout: 5000
+  timeout: 10000
 })
 
 // 添加请求拦截器

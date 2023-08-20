@@ -80,19 +80,7 @@ onMounted(() => getNews())
         <img :src="serve + item.imgSrc" />
       </van-swipe-item>
     </van-swipe>
-    <div class="search-box">
-      <div class="search-box-main">
-        <div class="location" @click="$router.push('/citylist')">
-          <span>{{ currentCity }}</span>
-          <van-icon name="arrow-down" />
-        </div>
-        <div class="search" @click="$router.push('/search')">
-          <van-icon name="search" />
-          <span>请输入小区或地址</span>
-        </div>
-      </div>
-      <van-icon @click="$router.push('/map')" class="map" name="location-o" />
-    </div>
+    <SearchHeader class="search-box" :current-city="currentCity" />
   </div>
 
   <!-- 导航菜单 -->
@@ -155,43 +143,7 @@ onMounted(() => getNews())
   .search-box {
     position: absolute;
     top: 25px;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    gap: 8px;
     padding: 0 12px 0 20px;
-    width: 100%;
-
-    .search-box-main {
-      flex: 1;
-      display: flex;
-      padding: 0.5em;
-      background-color: #fff;
-      border-radius: 3px;
-      box-shadow: 0 0 1px 1px rgba(0, 0, 0, 0.2);
-      font-size: 14px;
-
-      .location {
-        padding-right: 10px;
-        border-right: 1px solid #e0e0e5;
-      }
-
-      .search {
-        padding-left: 10px;
-        display: flex;
-        align-items: center;
-        gap: 5px;
-        color: #878383;
-        .van-icon {
-          font-size: 16px;
-        }
-      }
-    }
-
-    .map {
-      font-size: 1.6em;
-      color: #fff;
-    }
   }
 }
 

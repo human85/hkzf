@@ -1,7 +1,9 @@
 import NavBar from './NavBar/index.vue'
+import SearchHeader from './SearchHeader/index.vue'
 import type { App } from 'vue'
 const globalComponents = {
-  NavBar
+  NavBar,
+  SearchHeader
 }
 
 export const globalComponentsPlugin = {
