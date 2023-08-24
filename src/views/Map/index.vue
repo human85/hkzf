@@ -1,10 +1,11 @@
 <script lang="ts" setup>
-import { onMounted } from 'vue'
+import { onMounted, ref } from 'vue'
 import { getLocation } from '@/utils/getLocation'
 import { getHousingInfoApi } from '@/api/area/index'
 import type { HousingInfoItem } from '@/api/area/type'
-import HouseItems from './components/HouseItems.vue'
-import { ref } from 'vue'
+import { getHouseListApi } from '@/api/house/index'
+import type { HouseList } from '@/api/house/type'
+
 defineOptions({
   // eslint-disable-next-line
   name: 'Map'
@@ -134,7 +135,6 @@ function createCircle(area: HousingInfoItem, zoom: number) {
 }
 
 const isShow = ref(false) // 控制列表平移类
-const houseItemRef = ref<InstanceType<typeof HouseItems> | null>(null)
 
 /**@description 创建小区覆盖物的函数 */
 function createRect(area: HousingInfoItem) {
@@ -170,7 +170,7 @@ function createRect(area: HousingInfoItem) {
   map.addOverlay(label)
 
   label.addEventListener('click', (e: any) => {
-    houseItemRef.value?.getHouseList(area.value)
+    getHouseList(area.value)
     isShow.value = true
     // 将点击的覆盖物移动到中心点
     const target = e.currentTarget.domElement
@@ -178,6 +178,14 @@ function createRect(area: HousingInfoItem) {
     const y = (window.innerHeight - 330) / 2 - target.offsetTop - 10
     map.panBy(x, y)
   })
+}
+
+// 房屋列表数据
+const houseList = ref<HouseList>([])
+
+async function getHouseList(cityId: string) {
+  const { body } = await getHouseListApi({ cityId })
+  houseList.value = body.list
 }
 </script>
 
@@ -192,7 +200,9 @@ function createRect(area: HousingInfoItem) {
         <h3>房屋列表</h3>
         <span>更多房源</span>
       </div>
-      <HouseItems ref="houseItemRef" />
+      <div class="list-content">
+        <HouseItem v-for="house in houseList" :key="house.houseCode" :house="house" />
+      </div>
     </div>
   </div>
 </template>
@@ -233,6 +243,12 @@ function createRect(area: HousingInfoItem) {
     h3 {
       margin: 10px 0;
     }
+  }
+
+  .list-content {
+    padding: 0 10px 45px;
+    overflow-y: auto;
+    height: 100%;
   }
 }
 

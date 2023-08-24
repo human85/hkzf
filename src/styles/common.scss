@@ -17,3 +17,26 @@ body,
   color: #333;
   background-color: #fff;
 }
+
+// 全屏遮罩层
+.mask {
+  position: fixed;
+  top: 0;
+  left: 0;
+  z-index: 3;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.5);
+}
+
+// 单行省略号
+.ellipsis1 {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+// 阻止页面滚动的类名
+.no-scroll {
+  overflow: hidden;
+}
