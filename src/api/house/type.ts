@@ -21,3 +21,35 @@ export interface HouseItem {
   desc: string
   houseCode: string
 }
+
+// 房源查询参数
+export interface Params {
+  cityId: string
+  area?: string
+  subway?: string
+  rentType?: string
+  price?: string
+  more?: string
+  start?: number
+  end?: number
+}
+
+// 房屋查询条件
+export interface FilterConditionsRes extends Response {
+  body: {
+    area: Condition
+    characteristic: Condition[]
+    floor: Condition[]
+    rentType: Condition[]
+    oriented: Condition[]
+    price: Condition[]
+    roomType: Condition[]
+    subway: Condition
+  }
+}
+
+export interface Condition {
+  label: string
+  value: string
+  children?: Condition[]
+}
